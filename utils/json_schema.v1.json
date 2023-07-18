@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "uuid": {
+      "type": "string",
+      "minLength": 36,
+      "maxLength": 36
+    },
+    "os": {
+      "type": "string",
+      "minLength": 1
+    },
+    "perplexity_command": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 250
+    },
+    "build_number": {
+      "type": "number"
+    },
+    "build_commit": {
+      "type": "string",
+      "minLength": 7,
+      "maxLength": 7
+    },
+    "model": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength":100
+    },
+    "corpus": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength":100
+    },
+    "context": {
+      "type": "number"
+    },
+    "batch": {
+      "type": "number"
+    },
+    "perplexity": {
+      "type": "number"
+    },
+    "step_count": {
+      "type": "number"
+    },
+    "std_out": {
+      "type": "array",
+      "uniqueItems": true,
+      "minItems":10,
+      "items": {
+        "required": [
+          "step",
+          "seconds_total",
+          "seconds_delta",
+          "perplexity"
+        ],
+        "properties": {
+          "step": {
+            "type": "number"
+          },
+          "seconds_total": {
+            "type": "number"
+          },
+          "seconds_delta": {
+            "type": "number"
+          },
+          "perplexity": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "uuid",
+    "os",
+    "perplexity_command",
+    "build_number",
+    "build_commit",
+    "model",
+    "corpus",
+    "context",
+    "batch",
+    "perplexity",
+    "step_count",
+    "std_out",
+    "std_err"
+  ]
+}
