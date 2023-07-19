@@ -7,28 +7,26 @@ from datetime import datetime
 from time import time
 from yaspin import yaspin
 import re
+import cli.app
 
 ############################
 # config
 OUTPUT_FILE_SUFFIX = "px"
-# LLAMA_CPP_PATH  = "/Users/ianscrivener/_AI/___LLMs/_LLM_monorepo/llama.cpp"
-# MODEL = 'open-llama-7b-q4_0.bin'
-# MODEL_PATH = f'{LLAMA_CPP_PATH}/models/7B'
-# CORPUS = 'wiki.test.raw.19'
-# CORPUS_PATH = '/Users/ianscrivener/_AI/scriv-ml-monorepo/llama-cpp-ci-bench/wikitext-2-raw'
-# CONTEXT = 512
-# BATCH = 512
-# THREADS = 4
-# GPU = 1
+output_filepath = "results"
+LLAMA_CPP_PATH="/Users/ianscrivener/_AI/___LLMs/_LLM_monorepo/llama.cpp"
+MODEL="open-llama-7b-q4_0.bin"
+MODEL_PATH="/Users/ianscrivener/_AI/___LLMs/_LLM_monorepo/llama.cpp/models/7B"
+CORPUS="wiki.test.raw.19"
+# CORPUS_PATH="/Users/ianscrivener/_AI/scriv-ml-monorepo/llama-cpp-ci-bench/wikitext-2-raw"
+CORPUS_PATH="/Users/ianscrivener/_AI/scriv-ml-monorepo/_node.js_spikes/llama-cpp-ci-bench/wikitext-2-raw"
+CONTEXT=512
+BATCH=512
+THREADS=4
+GPU=1
+API=""
 
 ############################
-# create CLI command
-def build_command():
-    """Builds and returns the CLI command string."""
-    return f"""cd {LLAMA_CPP_PATH} && ./perplexity -m {MODEL_PATH}/{MODEL} -f {CORPUS_PATH}/{CORPUS} -c {CONTEXT} -b {BATCH} -t {THREADS} -ngl {GPU}"""
-
-############################
-# get llama.cpp buiuld details
+# get llama.cpp build details
 def get_build_details():
     with open(f'{LLAMA_CPP_PATH}/build-info.h', 'r') as file:
         contents = file.read()
@@ -77,10 +75,10 @@ def main():
         "batch": BATCH,
         "perplexity": 0,
         "step_count": 0,
+        "seconds": 0,
         "std_out": [],
         "std_err": []
     }
-
 
     step = 1
     prev_time = 0
@@ -95,15 +93,17 @@ def main():
             if output == ",":
                 score = score.split("]")[-1]
 
-                # set perplexity score in json
-                result["step_count"] = step
-                result["perplexity"] = float(score)
-
                 ms_total = round((current_time - start_time) * 1000)
+
                 if prev_time == 0:
                     ms_delta = ms_total
                 else:
                     ms_delta = ms_total - prev_time
+
+                # set perplexity score in json
+                result["step_count"] = step
+                result["perplexity"] = float(score)
+                result["seconds"] = ms_total/1000
 
                 result["std_out"].append(
                     {
@@ -130,9 +130,16 @@ def main():
     timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
     uuid_short = result["uuid"][:8]
     result["datetime"] = str(timestamp)
-    output_file_name = f"{OUTPUT_FILE_SUFFIX}_{uuid_short}_{timestamp}.json"
+    output_file_name = f"{output_filepath}/{OUTPUT_FILE_SUFFIX}_{timestamp}_{uuid_short}.json"
     with open(output_file_name, "w") as f:
         json.dump(result, f, indent=4)
 
+#     print(json.dumps(result, indent=4))
+    print()
+    print(f'   DONE: see results - {output_file_name} ')
 
-main()
+
+
+
+if __name__ == "__main__":
+    main()

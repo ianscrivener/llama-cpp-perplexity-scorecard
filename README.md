@@ -23,3 +23,8 @@ python3 perplexity_scorecard.py
 
 ---
 
+
+---
+### To Do
+ - `--no-send`
+ - ``
