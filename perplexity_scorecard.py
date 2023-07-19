@@ -7,23 +7,33 @@ from datetime import datetime
 from time import time
 from yaspin import yaspin
 import re
-import cli.app
+# import cli.app
+from dotenv import load_dotenv
+
+
+current_file_path = os.path.abspath(__file__)
+parent_directory = os.path.dirname(current_file_path)
 
 ############################
 # config
-OUTPUT_FILE_SUFFIX = "px"
-output_filepath = "results"
-LLAMA_CPP_PATH="/Users/ianscrivener/_AI/___LLMs/_LLM_monorepo/llama.cpp"
-MODEL="open-llama-7b-q4_0.bin"
-MODEL_PATH="/Users/ianscrivener/_AI/___LLMs/_LLM_monorepo/llama.cpp/models/7B"
-CORPUS="wiki.test.raw.19"
-# CORPUS_PATH="/Users/ianscrivener/_AI/scriv-ml-monorepo/llama-cpp-ci-bench/wikitext-2-raw"
-CORPUS_PATH="/Users/ianscrivener/_AI/scriv-ml-monorepo/_node.js_spikes/llama-cpp-ci-bench/wikitext-2-raw"
-CONTEXT=512
-BATCH=512
-THREADS=4
-GPU=1
-API=""
+output_file_suffix = "px"
+
+
+############################
+# Load the .env file
+load_dotenv()
+LLAMA_CPP_PATH = os.getenv('LLAMA_CPP_PATH')
+MODEL = os.getenv('MODEL')
+MODEL_PATH = os.getenv('MODEL_PATH')
+CORPUS = os.getenv('CORPUS')
+CORPUS_PATH = os.getenv('CORPUS_PATH', f'{parent_directory}/test_corpus')
+OUTPUT_FILE_PATH = os.getenv('OUTPUT_FILE_PATH', f'{parent_directory}/results')
+CONTEXT = int(os.getenv('CONTEXT', 512))  # Default set to 512
+BATCH = int(os.getenv('BATCH', 512))  # Default set to 512
+THREADS = int(os.getenv('THREADS', 4))  # Default set to 4
+GPU = int(os.getenv('GPU', 1))  # Default set to 1
+API = os.getenv('API', '')  # Default set to empty string
+
 
 ############################
 # get llama.cpp build details
@@ -130,16 +140,13 @@ def main():
     timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
     uuid_short = result["uuid"][:8]
     result["datetime"] = str(timestamp)
-    output_file_name = f"{output_filepath}/{OUTPUT_FILE_SUFFIX}_{timestamp}_{uuid_short}.json"
+    output_file_name = f"{OUTPUT_FILE_PATH}/{output_file_suffix}_{timestamp}_{uuid_short}.json"
     with open(output_file_name, "w") as f:
         json.dump(result, f, indent=4)
 
 #     print(json.dumps(result, indent=4))
-    print()
+#     print()
     print(f'   DONE: see results - {output_file_name} ')
 
-
-
-
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+main()

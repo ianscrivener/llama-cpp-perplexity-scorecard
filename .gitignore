@@ -4,3 +4,5 @@
 .env
 /__digitalocean_serverless_functions/
 *px_*.json
+results/
+test_corpus/
