@@ -1,0 +1,3 @@
+yaspin
+python-dotenv
+requests

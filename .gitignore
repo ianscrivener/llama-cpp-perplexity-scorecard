@@ -1,4 +1,3 @@
-.DS*
 .idea
 .DS_Store
 .env
@@ -6,3 +5,5 @@
 *px_*.json
 results/
 test_corpus/
+/myenv/
+/serverless_functions/llama_perplexity_api/.deployed/
