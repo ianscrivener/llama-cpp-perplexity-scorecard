@@ -31,4 +31,4 @@ python3 perplexity_scorecard.py
 
 Coming soon... the **llama.cpp perplexity leaderboard** and Jupyter (.ipynb) analysis and charting examples.
 
-PRs are very welcome 😀
+PRs are welcome 😀
