@@ -1,9 +1,6 @@
 .idea
 .DS_Store
 .env
-/__digitalocean_serverless_functions/
 *px_*.json
 results/
 test_corpus/
-/myenv/
-/serverless_functions/llama_perplexity_api/.deployed/
