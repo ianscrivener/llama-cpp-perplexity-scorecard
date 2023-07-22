@@ -3,3 +3,4 @@
 .env
 *px_*.json
 test_corpus/
+libs/__pycache__/
