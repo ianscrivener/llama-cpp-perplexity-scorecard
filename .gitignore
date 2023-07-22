@@ -2,5 +2,4 @@
 .DS_Store
 .env
 *px_*.json
-results/
 test_corpus/
