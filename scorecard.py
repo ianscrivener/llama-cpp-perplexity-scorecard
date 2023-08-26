@@ -65,6 +65,7 @@ API_WEB_URL = args.api_web_url
 HARDWARE_DESC = args.hardware_desc
 VERBOSE = False if args.verbose is None else True
 IGNORE = 0 if args.ignore is None else 1
+TEST_TYPE = 'Perplexity'
 
 if VERBOSE:
     print("########################")
