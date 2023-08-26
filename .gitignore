@@ -6,3 +6,4 @@ test_corpus/
 libs/__pycache__/
 /_scriv_utils/
 zsource
+/libs/download_hellaswag.py

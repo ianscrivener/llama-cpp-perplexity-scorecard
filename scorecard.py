@@ -17,9 +17,9 @@ import sys
 ############################
 # hard coded variables
 output_file_suffix = "px"
-version = "1.0.3"
-wikiraw_sizes=[406,103,60,19]
-hellaswag_sizes=[200,600,800] # 200, 400, 600, 800
+version = "1.0.4"
+wikiraw_sizes=[406,103,60,19]       # 406,103,60,19
+hellaswag_sizes=[200,600,800]       # 200, 400, 600, 800
 
 
 ############################
@@ -29,9 +29,11 @@ parser = argparse.ArgumentParser(description='Process command-line arguments.')
 parser.add_argument('--llama_cpp_path', default=os.getenv('LLAMA_CPP_PATH'), help='Path to llama cpp')
 parser.add_argument('-m','--model', default=os.getenv('MODEL'), help='Model name')
 parser.add_argument('--model_path', default=os.getenv('MODEL_PATH'), help='Path to the model')
+
 parser.add_argument('--corpus', default=os.getenv('CORPUS'), help='Corpus name')
 parser.add_argument('--corpus_lines', default=os.getenv('CORPUS_LINES'), help='Number of corpus lines')
 parser.add_argument('--corpus_path', default=os.getenv('CORPUS_PATH',f'{os.getcwd()}/test_corpus'), help='Path to the corpus')
+
 parser.add_argument('-o','-O','--output_file_path', default=os.getenv('OUTPUT_FILE_PATH',f'{os.getcwd()}/results'), help='Path to JSON output directory')
 parser.add_argument('-c','--context', default=int(os.getenv('CONTEXT', 512)), type=int, help='Context size')
 parser.add_argument('-b','--batch', default=int(os.getenv('BATCH', 512)), type=int, help='Batch size')
@@ -42,8 +44,8 @@ parser.add_argument('--api_web_url', default=os.getenv('API_WEB_URL','https://ll
 parser.add_argument('--hardware_desc', default=os.getenv('HARDWARE_DESC', "unknown"), help='Describe your hardware very briefly')
 parser.add_argument('-v','--verbose', help='Print debugging output', action='store_true')
 parser.add_argument('-i','--ignore', help='Set ignore flag in JSON saved to AWS S3', action='store_true')
-parser.add_argument('--perp', help='Benchmark test type ***perplexity***', action='store_true')
-parser.add_argument('--hella', help='Benchmark test type ***HellaSwagIsh***', action='store_true')
+# parser.add_argument('--perp', help='Benchmark test type ***perplexity***', action='store_true')
+# parser.add_argument('--hella', help='Benchmark test type ***HellaSwagIsh***', action='store_true')
 args = parser.parse_args()
 
 # set main app variables
@@ -63,7 +65,6 @@ API_WEB_URL = args.api_web_url
 HARDWARE_DESC = args.hardware_desc
 VERBOSE = False if args.verbose is None else True
 IGNORE = 0 if args.ignore is None else 1
-TEST_TYPE = 'HellaSwag' if args.hella else 'Perplexity' # perplexity overrides hellaswag
 
 if VERBOSE:
     print("########################")
@@ -73,7 +74,7 @@ if VERBOSE:
 ############################
 # download test data sets
 download_wiki_raw.main(CORPUS_PATH,wikiraw_sizes)
-download_hellaswag(CORPUS_PATH,hellaswag_sizes)
+# download_hellaswag.main(CORPUS_PATH,hellaswag_sizes)
 
 ############################
 # helper function to get llama.cpp build details
@@ -111,8 +112,8 @@ def main():
     if TEST_TYPE == 'Perplexity':
         bash_command = f"cd {LLAMA_CPP_PATH} && ./perplexity --perplexity -m {MODEL_PATH}/{MODEL} -f {CORPUS_PATH}/{CORPUS} -c {CONTEXT} -b {BATCH} -t {THREADS} -ngl {GPU}"
 #         bash_command = f"./perplexity --perplexity -m {MODEL} -f {CORPUS} -c {CONTEXT} -b {BATCH} -t {THREADS} -ngl {GPU}"
-#     elif  TEST_TYPE == 'HellaSwagIsh':
-#         bash_command = f"cd {LLAMA_CPP_PATH} && ./perplexity --perplexity --perplexity-lines -m {MODEL_PATH}/{MODEL} -f {CORPUS_PATH}/{CORPUS} -c {CONTEXT} -b {BATCH} -t {THREADS} -ngl {GPU}"
+#     elif  TEST_TYPE == 'HellaSwag':
+#         bash_command = f"cd {LLAMA_CPP_PATH} && ./perplexity --hellaswag --perplexity-lines -m {MODEL_PATH}/{MODEL} -f {CORPUS_PATH}/{CORPUS} -c {CONTEXT} -b {BATCH} -t {THREADS} -ngl {GPU}"
 #         bash_command = f"./perplexity --perplexity -m {MODEL} -f {CORPUS} -c {CONTEXT} -b {BATCH} -t {THREADS} -ngl {GPU}"
 
     else:
