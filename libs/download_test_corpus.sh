@@ -10,7 +10,7 @@ do
     fi
 done
 
-if [ $force = false ] && [ -f "test_corpus/wiki.test.raw.406" ] && [ -f "test_corpus/wiki.test.raw.103" ]; then
+if [ $force = false ] && [ -f "test_corpus/wiki.test.raw.406" ] && [ -f "test_corpus/wiki.test.raw.60" ] && [ -f "test_corpus/wiki.test.raw.103" ] && [ -f "test_corpus/wiki.test.raw.19" ]; then
   echo "Files wiki.test.raw.406 and wiki.test.raw.103 exist. Skipping download."
   exit 0
 fi

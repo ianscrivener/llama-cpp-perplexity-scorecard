@@ -10,35 +10,21 @@ from yaspin import yaspin
 import requests
 import re
 from dotenv import load_dotenv
-from libs import download_test_corpus
-
+from libs import download_wiki_raw
+from libs import download_hellaswag
+import sys
 
 ############################
-# hard coded config
+# hard coded variables
 output_file_suffix = "px"
-version = "1.0.0"
-test_corpus_sizes=[406,103,60,19]
+version = "1.0.3"
+wikiraw_sizes=[406,103,60,19]
+hellaswag_sizes=[200,600,800] # 200, 400, 600, 800
+
 
 ############################
-# user config - loaded from .env file
+# Set up argument parser - CLI arguments take precedence over .env variables
 load_dotenv()
-# LLAMA_CPP_PATH = os.getenv('LLAMA_CPP_PATH')
-# MODEL = os.getenv('MODEL')
-# MODEL_PATH = os.getenv('MODEL_PATH')
-# CORPUS = os.getenv('CORPUS')
-# CORPUS_LINES = os.getenv('CORPUS_LINES')
-# CORPUS_PATH = os.getenv('CORPUS_PATH', f'{os.getcwd()}/test_corpus')
-# OUTPUT_FILE_PATH = os.getenv('OUTPUT_FILE_PATH', f'{os.getcwd()}/results')
-# CONTEXT = int(os.getenv('CONTEXT', 512))  # Default set to 512
-# BATCH = int(os.getenv('BATCH', 512))  # Default set to 512
-# THREADS = int(os.getenv('THREADS', 4))  # Default set to 4
-# GPU = int(os.getenv('GPU', 1))  # Default set to 1
-# # API = os.getenv('API', 'https://faas-sfo3-7872a1dd.doserverless.co/api/v1/web/fn-0e980f16-1f90-45b6-95f9-3a85255c6239/llama_perplexity_api/v1')  # Default set to empty string
-# API = os.getenv('API', 'https://vx4spcsyj5c47txsx6dhvidnxy0nyzru.lambda-url.us-east-1.on.aws/')
-# API_WEB_URL = os.getenv('API', 'https://llama-cpp-perplexity-logs.s3.amazonaws.com')
-
-############################
-# Set up argument parser
 parser = argparse.ArgumentParser(description='Process command-line arguments.')
 parser.add_argument('--llama_cpp_path', default=os.getenv('LLAMA_CPP_PATH'), help='Path to llama cpp')
 parser.add_argument('-m','--model', default=os.getenv('MODEL'), help='Model name')
@@ -54,12 +40,13 @@ parser.add_argument('--gpu', default=int(os.getenv('GPU', 100000)), type=int, he
 parser.add_argument('--api', default='https://vx4spcsyj5c47txsx6dhvidnxy0nyzru.lambda-url.us-east-1.on.aws', help='API endpoint')
 parser.add_argument('--api_web_url', default=os.getenv('API_WEB_URL','https://llama-cpp-perplexity-logs.s3.amazonaws.com'), help='API web URL')
 parser.add_argument('--hardware_desc', default=os.getenv('HARDWARE_DESC', "unknown"), help='Describe your hardware very briefly')
-parser.add_argument('-v','--verbose', help='Print debugging output',  action='store_true')
+parser.add_argument('-v','--verbose', help='Print debugging output', action='store_true')
 parser.add_argument('-i','--ignore', help='Set ignore flag in JSON saved to AWS S3', action='store_true')
-
-# Parse arguments
+parser.add_argument('--perp', help='Benchmark test type ***perplexity***', action='store_true')
+parser.add_argument('--hella', help='Benchmark test type ***HellaSwagIsh***', action='store_true')
 args = parser.parse_args()
 
+# set main app variables
 LLAMA_CPP_PATH = args.llama_cpp_path
 MODEL = args.model
 MODEL_PATH = args.model_path
@@ -76,6 +63,7 @@ API_WEB_URL = args.api_web_url
 HARDWARE_DESC = args.hardware_desc
 VERBOSE = False if args.verbose is None else True
 IGNORE = 0 if args.ignore is None else 1
+TEST_TYPE = 'HellaSwag' if args.hella else 'Perplexity' # perplexity overrides hellaswag
 
 if VERBOSE:
     print("########################")
@@ -83,11 +71,12 @@ if VERBOSE:
         print(f'{arg}: {getattr(args, arg)}')
 
 ############################
-# test corpus
-download_test_corpus.main(CORPUS_PATH,test_corpus_sizes)
+# download test data sets
+download_wiki_raw.main(CORPUS_PATH,wikiraw_sizes)
+download_hellaswag(CORPUS_PATH,hellaswag_sizes)
 
 ############################
-# get llama.cpp build details
+# helper function to get llama.cpp build details
 def get_build_details():
     with open(f'{LLAMA_CPP_PATH}/build-info.h', 'r') as file:
         contents = file.read()
@@ -104,7 +93,7 @@ def get_build_details():
 
 
 ############################
-# remove full filepaths from std_err
+# helper function to remove full filepaths from std_err
 def lint_stderr(stderr_array):
     new_array = []
     for item in stderr_array:
@@ -115,19 +104,33 @@ def lint_stderr(stderr_array):
 # main function
 def main():
     build_number, build_commit = get_build_details()
-    perplexity_command = f"cd {LLAMA_CPP_PATH} && ./perplexity -m {MODEL_PATH}/{MODEL} -f {CORPUS_PATH}/{CORPUS} -c {CONTEXT} -b {BATCH} -t {THREADS} -ngl {GPU}"
-    perplexity_command_json = f"./perplexity -m {MODEL} -f {CORPUS} -c {CONTEXT} -b {BATCH} -t {THREADS} -ngl {GPU}"
+
+
+    ############################
+    # different bash commands for differest benchmark types
+    if TEST_TYPE == 'Perplexity':
+        bash_command = f"cd {LLAMA_CPP_PATH} && ./perplexity --perplexity -m {MODEL_PATH}/{MODEL} -f {CORPUS_PATH}/{CORPUS} -c {CONTEXT} -b {BATCH} -t {THREADS} -ngl {GPU}"
+#         bash_command = f"./perplexity --perplexity -m {MODEL} -f {CORPUS} -c {CONTEXT} -b {BATCH} -t {THREADS} -ngl {GPU}"
+#     elif  TEST_TYPE == 'HellaSwagIsh':
+#         bash_command = f"cd {LLAMA_CPP_PATH} && ./perplexity --perplexity --perplexity-lines -m {MODEL_PATH}/{MODEL} -f {CORPUS_PATH}/{CORPUS} -c {CONTEXT} -b {BATCH} -t {THREADS} -ngl {GPU}"
+#         bash_command = f"./perplexity --perplexity -m {MODEL} -f {CORPUS} -c {CONTEXT} -b {BATCH} -t {THREADS} -ngl {GPU}"
+
+    else:
+        print("ERROR: benchmarktest type not defined")
+        sys.exit()
+
+
+
     start_time = time()
 
     if VERBOSE:
         print("\n########################")
-        print("./perplexity command")
-        print(perplexity_command)
+        print(bash_command)
         print("########################")
 
     #  run llama.cpp in a sub process
     process = subprocess.Popen(
-        perplexity_command,
+        bash_command,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         shell=True,
@@ -138,13 +141,14 @@ def main():
     # build json result set
     result = {
         "uuid": str(uuid.uuid4()),
+        "benchmark_type": TEST_TYPE,
         "ignore": IGNORE,
         "datetime": "",
         "file_name": "",
         "version": version,
         "os": platform.version(),
-        "hardware":HARDWARE_DESC,
-        "perplexity_command": perplexity_command_json,
+        "hardware": HARDWARE_DESC,
+        "bash_command": bash_command,
         "build_number": build_number,
         "build_commit": build_commit,
         "model": MODEL,
@@ -159,7 +163,7 @@ def main():
         "std_err": []
     }
 
-    # loop through stdout form llama.cpp, extracting chunk data & making JSON
+    # loop through stdout from llama.cpp, extracting chunk data & making JSON
     step = 1
     prev_time = 0
     score = ""

@@ -2,3 +2,5 @@ yaspin
 python-dotenv
 requests
 argparse
+lxml
+
