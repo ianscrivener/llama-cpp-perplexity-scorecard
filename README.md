@@ -8,7 +8,7 @@ See background discussions in the [llama.cpp discussions](https://github.com/gge
 
 This python app wraps the **llama.cpp** `./perplexity` executable and uploads perplexity scores and test results as JSON to an Amazon S3 bucket for analysis.
 
-The standard llama.cpp perplexity test uses **wiki.test.raw.406** - ie 406 lines from [wiki.test.raw](https://www.salesforce.com/products/einstein/ai-research/the-wikitext-dependency-language-modeling-dataset/)
+The standard llama.cpp perplexity test uses **wiki.test.raw.406** - ie 406 lines from [wiki.test.raw](https://blog.salesforceairesearch.com/the-wikitext-long-term-dependency-language-modeling-dataset/)
 
 
 ### Install
